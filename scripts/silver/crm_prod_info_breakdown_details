@@ -194,8 +194,8 @@ prd_end_dt
 
 SELECT
 prd_id,
-SUBSTRING (prd_key,7, LEN (prd_key)) AS prd_key,
 REPLACE (SUBSTRING (prd_key,1,5),'-','_') AS cat_id,
+SUBSTRING (prd_key,7, LEN (prd_key)) AS prd_key,
 prd_nm,
 ISNULL (prd_cost,0) AS prd_cost,
 CASE UPPER (TRIM(prd_line))  -- to simplify QUICK CASE for simple value mapping
@@ -224,3 +224,4 @@ SELECT *
 FROM silver.crm_prd_info
 WHERE prd_end_dt < prd_start_dt
 -- Verified, no invalid date orders
+
