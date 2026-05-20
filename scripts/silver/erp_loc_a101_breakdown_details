@@ -1,0 +1,60 @@
+SELECT TOP (1000) [cid]
+      ,[cntry]
+  FROM [DataWarehouse].[bronze].[erp_loc_a101]
+
+--to replacee '-' to '' in cid to match with cst_key
+--to check any unmatach cid in cst_key
+SELECT 
+REPLACE (cid, '-','') AS cid,
+cntry
+FROM bronze.erp_loc_a101
+WHERE REPLACE (cid, '-','') NOT IN (SELECT cst_key FROM silver.crm_cust_info)
+
+
+--Data Standardization & consistency
+--to check the cntry list
+SELECT DISTINCT cntry
+FROM bronze.erp_loc_a101
+ORDER BY cntry
+
+
+--to standardized cntry name
+SELECT DISTINCT
+CASE 
+WHEN UPPER (TRIM (cntry)) = 'DE' THEN 'Germany'
+WHEN UPPER (TRIM (cntry)) IN ('US','USA') THEN 'United States'
+WHEN UPPER (TRIM (cntry)) = '' THEN 'n/a'
+WHEN UPPER (TRIM (cntry)) IS NULL THEN 'n/a'
+ELSE cntry
+END cntry
+FROM bronze.erp_loc_a101
+
+
+--to update the main query
+--to insert data into silver.erp_loc_a101
+INSERT INTO silver.erp_loc_a101 (
+cid,
+cntry
+)
+SELECT 
+REPLACE (cid, '-','') AS cid,
+CASE 
+WHEN UPPER (TRIM (cntry)) = 'DE' THEN 'Germany'
+WHEN UPPER (TRIM (cntry)) IN ('US','USA') THEN 'United States'
+WHEN UPPER (TRIM (cntry)) = '' THEN 'n/a'
+WHEN UPPER (TRIM (cntry)) IS NULL THEN 'n/a'
+ELSE cntry
+END cntry
+FROM bronze.erp_loc_a101
+
+
+--data quality check
+--to check the cntry list
+SELECT DISTINCT cntry
+FROM silver.erp_loc_a101
+ORDER BY cntry
+--verified, all countries standardized naming
+
+SELECT *
+FROM silver.erp_loc_a101
+
