@@ -1,0 +1,29 @@
+SELECT TOP (1000) [id]
+      ,[cat]
+      ,[subcat]
+      ,[maintenance]
+  FROM [DataWarehouse].[bronze].[erp_px_cat_g1v2]
+
+--check for unwanted spaces
+SELECT *
+FROM bronze.erp_px_cat_g1v2
+WHERE cat !=TRIM (cat) or subcat !=TRIM (subcat)
+
+--to check data standardization
+SELECT DISTINCT maintenance
+FROM bronze.erp_px_cat_g1v2
+
+
+--to update data table for silver.erp_px_cat_g1v2
+INSERT INTO silver.erp_px_cat_g1v2 (
+id,
+cat,
+subcat,
+maintenance
+)
+
+SELECT *
+FROM bronze.erp_px_cat_g1v2
+
+SELECT *
+FROM silver.erp_px_cat_g1v2
