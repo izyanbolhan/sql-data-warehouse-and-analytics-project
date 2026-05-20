@@ -1,3 +1,5 @@
+#/ This script shows the breakdown details on data cleaning and standardization for crm_prod_info /#
+
 SELECT TOP (1000) [prd_id]
       ,[prd_key]
       ,[prd_nm]
