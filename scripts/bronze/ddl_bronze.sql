@@ -7,6 +7,7 @@ This script creates tables in the 'bronze' schema, dropping existing tables if t
 Run this script to re-define the DDL structure of 'bronze' tables
 ================================================================================
 */
+
 IF OBJECT_ID ('bronze.crm_cust_info', 'U') IS NOT NULL
 	DROP TABLE bronze.crm_cust_info;
 -- to create table for crm_cust_info
@@ -16,8 +17,8 @@ cst_id INT,
 cst_key NVARCHAR(50),
 cst_firstname NVARCHAR(50),
 cst_lastname NVARCHAR (50),
-cst_material_status NVARCHAR(50),
-cst_gender NVARCHAR(50),
+cst_marital_status NVARCHAR(50),
+cst_gndr NVARCHAR(50),
 cst_create_date DATE
 );
 
@@ -67,7 +68,7 @@ IF OBJECT_ID ('bronze.erp_loc_a101', 'U') IS NOT NULL
 	DROP TABLE bronze.erp_loc_a101;
 
 CREATE TABLE bronze.erp_loc_a101 (
-id NVARCHAR(50),
+cid NVARCHAR(50),
 cntry NVARCHAR (50)
 );
 
