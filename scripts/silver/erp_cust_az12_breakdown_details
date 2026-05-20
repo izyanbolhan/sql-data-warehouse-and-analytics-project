@@ -1,0 +1,93 @@
+SELECT TOP (1000) [cid]
+      ,[bdate]
+      ,[gen]
+  FROM [DataWarehouse].[bronze].[erp_cust_az12]
+
+  --to compare cid & cst_key from sivler.crm_cust_info
+  --to remove additional 'NAS%' to match similar cst_key naming
+  SELECT
+  CASE WHEN cid LIKE 'NAS%' THEN  SUBSTRING (cid,4, len (cid))
+  ELSE cid
+  END cid,
+  bdate,
+  gen
+  FROM bronze.erp_cust_az12;
+
+  -- to check unmatch cid from cst_key from silver.crm_cust_info
+  -- observed all is matched
+  SELECT
+  CASE WHEN cid LIKE 'NAS%' THEN  SUBSTRING (cid,4, len (cid))
+  ELSE cid
+  END cid,
+  bdate,
+  gen
+  FROM bronze.erp_cust_az12
+  WHERE CASE WHEN cid LIKE 'NAS%' THEN  SUBSTRING (cid,4, len (cid))
+  ELSE cid  END  NOT IN (SELECT DISTINCT cst_key FROM silver.crm_cust_info)
+
+  --to check any NULL bdate
+  SELECT bdate
+  FROM bronze.erp_cust_az12
+  WHERE bdate IS NULL
+
+  --identify out of range dates
+  --either leave the date as it is or do data cleaning by any future date into NULL
+ SELECT bdate
+ FROM bronze.erp_cust_az12
+ WHERE bdate < '1924-01-01' OR bdate > GETDATE()
+
+ --either leave the date as it is or do data cleaning by any future date into NULL
+  SELECT
+  CASE WHEN cid LIKE 'NAS%' THEN  SUBSTRING (cid,4, len (cid))
+  ELSE cid
+  END cid,
+  CASE WHEN bdate > GETDATE () THEN NULL ELSE bdate END AS bdate,
+  gen
+  FROM bronze.erp_cust_az12;
+
+  -- to check the naming for gen
+  SELECT DISTINCT gen
+  FROM bronze.erp_cust_az12;
+  
+  SELECT DISTINCT
+  CASE 
+  WHEN UPPER (TRIM (gen)) IN ('F','FEMALE') THEN 'Female'
+  WHEN UPPER (TRIM (gen)) IN ('M','MALE') THEN 'Male'
+  ELSE 'n/a'
+  END gen
+  FROM bronze.erp_cust_az12;
+  
+
+  --to update in main query
+  INSERT INTO silver.erp_cust_az12 (
+cid,
+bdate,
+gen
+)
+  SELECT
+  CASE WHEN cid LIKE 'NAS%' THEN  SUBSTRING (cid,4, len (cid))
+  ELSE cid
+  END cid, -- remove 'NAS' prefix if present
+  CASE WHEN bdate > GETDATE () THEN NULL ELSE bdate END AS bdate, -- set future birthdates to NULL
+  CASE 
+  WHEN UPPER (TRIM (gen)) IN ('F','FEMALE') THEN 'Female'
+  WHEN UPPER (TRIM (gen)) IN ('M','MALE') THEN 'Male'
+  ELSE 'n/a'
+  END gen -- normalize gender values and handle unknown cases
+  FROM bronze.erp_cust_az12;
+
+--Quality check of the silver table
+
+  -- to check the naming for gen
+  SELECT DISTINCT gen
+  FROM silver.erp_cust_az12;
+  --verified, only 3 categories Male, Female and n/a
+
+  --identify out of range date
+ SELECT bdate
+ FROM silver.erp_cust_az12
+ WHERE bdate < '1924-01-01' OR bdate > GETDATE()
+ --verified, only observed old customers no date in future
+
+ SELECT *
+ FROM silver.erp_cust_az12
