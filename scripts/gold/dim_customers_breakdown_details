@@ -1,0 +1,98 @@
+
+--to join tables from silver.erp_cust_az12 & silver.erp_loc_a101 into silver.crom_cust_info
+SELECT
+	ci.cst_id,
+	ci.cst_key,
+	ci.cst_firstname,
+	ci.cst_lastname,
+	ci.cst_marital_status,
+	ci.cst_gndr,
+	ci.cst_create_date,
+	ca.bdate,
+	ca.gen,
+	loca.cntry
+FROM silver.crm_cust_info ci
+LEFT JOIN silver.erp_cust_az12 ca
+ON ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101 loca
+ON ci.cst_key = loca.cid
+
+
+--to check if there is any duplicates on the main table
+SELECT cst_id, COUNT (*) FROM
+(
+SELECT
+	ci.cst_id,
+	ci.cst_key,
+	ci.cst_firstname,
+	ci.cst_lastname,
+	ci.cst_marital_status,
+	ci.cst_gndr,
+	ci.cst_create_date,
+	ca.bdate,
+	ca.gen,
+	loca.cntry
+FROM silver.crm_cust_info ci
+LEFT JOIN silver.erp_cust_az12 ca
+ON ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101 loca
+ON ci.cst_key = loca.cid
+)t
+GROUP BY cst_id
+HAVING COUNT (*) >1
+
+--no duplicates observed.
+--based on the join table, there are 2 gender columns. to check on data integration focusing on 2 gender columns
+SELECT DISTINCT
+	ci.cst_gndr,
+	ca.gen
+FROM silver.crm_cust_info ci
+LEFT JOIN silver.erp_cust_az12 ca
+ON ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101 loca
+ON ci.cst_key = loca.cid
+ORDER BY 1,2
+
+--assume CRM is the MASTER for gender info
+SELECT DISTINCT
+	ci.cst_gndr,
+	ca.gen,
+	CASE WHEN ci.cst_gndr != 'n/a' THEN ci.cst_gndr
+		ELSE COALESCE (ca.gen, 'n/a')
+	END AS new_gen
+FROM silver.crm_cust_info ci
+LEFT JOIN silver.erp_cust_az12 ca
+ON ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101 loca
+ON ci.cst_key = loca.cid
+ORDER BY 1,2
+
+--to update the main query
+--to rename columns to friendly, meaningful names --use snake_case method
+--to check the table is dimension or facts. based on the table, dimension is more on decriptive information
+--thus need to create a new primary key or surrogate key
+--surrogate key -- system-generated unique identifier assigned to each record in a table
+CREATE VIEW gold.dim_customers AS
+SELECT
+	ROW_NUMBER () OVER (ORDER BY cst_id) AS customer_key,
+	ci.cst_id AS customer_id,
+	ci.cst_key AS customer_number,
+	ci.cst_firstname AS first_name,
+	ci.cst_lastname AS last_name,
+	loca.cntry AS country,
+	ci.cst_marital_status AS marital_status,
+	CASE WHEN ci.cst_gndr != 'n/a' THEN ci.cst_gndr
+		ELSE COALESCE (ca.gen, 'n/a')
+	END AS gender,
+	ca.bdate AS birthdate,
+	ci.cst_create_date AS create_date
+FROM silver.crm_cust_info ci
+LEFT JOIN silver.erp_cust_az12 ca
+	ON ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101 loca
+	ON ci.cst_key = loca.cid
+
+--after create the view table, need to do data quality check
+
+SELECT distinct gender 
+FROM gold.dim_customers
