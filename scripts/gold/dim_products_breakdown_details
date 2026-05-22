@@ -1,0 +1,110 @@
+SELECT *
+FROM silver.crm_prd_info;
+
+SELECT *
+FROM silver.erp_px_cat_g1v2;
+
+--to filter old historical data and only take the reccent prd_cost
+--to join table from silver.erp_px_cat_g1v2 to table silver.crm_prd_info
+
+SELECT
+	pi.prd_id AS product_id,
+	pi.cat_id AS category_id,
+	pi.prd_key AS product_number,
+	pi.prd_nm AS product_name,
+	pi.prd_cost AS cost,
+	pi.prd_line AS product_line,
+	pi.prd_start_dt AS product_start_date,
+	pxc.cat AS category,
+	pxc.subcat AS subcategory,
+	pxc.maintenance AS maintenance
+FROM silver.crm_prd_info AS pi
+LEFT JOIN silver.erp_px_cat_g1v2 as pxc
+	ON pi.cat_id = pxc.id
+WHERE prd_end_dt IS NULL -- to filter out all historical data
+
+--to check data quality of the merging tables
+SELECT prd_key, COUNT (*) FROM (
+SELECT
+	pi.prd_id,
+	pi.cat_id,
+	pi.prd_key,
+	pi.prd_nm,
+	pi.prd_cost,
+	pi.prd_line,
+	pi.prd_start_dt,
+	pxc.cat,
+	pxc.subcat,
+	pxc.maintenance
+FROM silver.crm_prd_info AS pi
+LEFT JOIN silver.erp_px_cat_g1v2 as pxc
+	ON pi.cat_id = pxc.id
+WHERE prd_end_dt IS NULL
+)t
+GROUP BY prd_key
+HAVING COUNT (*) > 1
+
+--no duplicates found
+
+--sort the columns into logical group to improve readibility
+SELECT
+	pi.prd_id,
+	pi.prd_key,
+	pi.prd_nm,
+	pi.cat_id,
+	pxc.cat,
+	pxc.subcat,
+	pxc.maintenance,
+	pi.prd_cost,
+	pi.prd_line,
+	pi.prd_start_dt
+FROM silver.crm_prd_info AS pi
+LEFT JOIN silver.erp_px_cat_g1v2 as pxc
+	ON pi.cat_id = pxc.id
+WHERE prd_end_dt IS NULL
+
+--to rename columns to friendly, meaningful names
+
+SELECT
+	pi.prd_id AS product_id,
+	pi.prd_key AS product_number,
+	pi.prd_nm AS product_name,
+	pi.cat_id AS category_id,
+	pxc.cat AS category,
+	pxc.subcat AS subcategory,
+	pxc.maintenance AS maintenance,
+	pi.prd_cost AS cost,
+	pi.prd_line AS product_line,
+	pi.prd_start_dt AS product_start_date
+FROM silver.crm_prd_info AS pi
+LEFT JOIN silver.erp_px_cat_g1v2 as pxc
+	ON pi.cat_id = pxc.id
+WHERE prd_end_dt IS NULL
+
+
+--this table is a dimension since each row describing each product
+--to create surroagate key
+--to create view table
+
+CREATE VIEW gold.dim_products AS
+SELECT
+	ROW_number () OVER (ORDER BY pi.prd_start_dt, pi.prd_key) AS product_key,
+	pi.prd_id AS product_id,
+	pi.prd_key AS product_number,
+	pi.prd_nm AS product_name,
+	pi.cat_id AS category_id,
+	pxc.cat AS category,
+	pxc.subcat AS subcategory,
+	pxc.maintenance AS maintenance,
+	pi.prd_cost AS cost,
+	pi.prd_line AS product_line,
+	pi.prd_start_dt AS product_start_date
+FROM silver.crm_prd_info AS pi
+LEFT JOIN silver.erp_px_cat_g1v2 as pxc
+	ON pi.cat_id = pxc.id
+WHERE prd_end_dt IS NULL
+
+
+--to view the gold.dim_products
+SELECT *
+FROM gold.dim_products
