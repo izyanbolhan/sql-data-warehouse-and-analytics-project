@@ -52,7 +52,7 @@ The integration model below shows how tables are related based on the primary ke
 
 <img width="1091" height="569" alt="Integration Model" src="https://github.com/user-attachments/assets/2f4bf7a3-0588-431b-8c9d-f9e1a1c455c9" />
 
-## Sales_Data Mart
+## Sales Data Mart
 The sales data mart shows the fact and dimension tables in view format. This is the final output tables before proceed on SQL Explatory Data Analysis (EDA).
 <img width="1161" height="506" alt="Sales_Data_Mart" src="https://github.com/user-attachments/assets/d73f0ac4-6feb-454c-a888-9f977846e9ed" />
 
