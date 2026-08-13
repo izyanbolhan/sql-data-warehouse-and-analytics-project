@@ -19,16 +19,6 @@ This project demonstrates a comprehensive data warehousing and analytics solutio
 
 ---
 
-### BI : Analytics & Reporting (Data Analytics)
-
- #### Objective : Develop SQL-based analytics to deliver detailed insights into :
- - **Customer Behaviour**
- - **Product Performance**
- - **Sales Trends**
-
-These insights empower stakeholders with key business metrics, enabling strategic decision-making.
-
-
 ## Data Architecture
 The data architecture for this project follows Medallion Architecture **Bronze**, **Silver**, and **Gold** layers:
 
@@ -62,8 +52,22 @@ The Data Warehouse are built based on
   - data quality issues was checked and resolve prior to analysis
   - both sources combined into a single, user-friendly data model designed for analytical queries
   - documention of the data model provided to support both business stakeholders and analytics team
-
 All the project tasks for each project phase is published in here : https://cumbersome-cart-7b4.notion.site/Data-Warehouse-Project-3640acd473c58016bea4c69c964b1a61
+
+### BI : Analytics & Reporting (Data Analytics)
+
+ #### Objective : Develop SQL-based analytics to deliver detailed insights into :
+ - **Customer Behaviour**
+ - **Product Performance**
+ - **Sales Trends**
+
+These insights empower stakeholders with key business metrics, enabling strategic decision-making.
+
+
+### Tools :
+- **Power BI** : Data visualization and business intelligence dahsboard
+- **SQL server** : Direct Query from Data Warehouse
+
 
 
 
